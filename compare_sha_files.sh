@@ -47,38 +47,38 @@ read -n 1 -r -s -p $'SHA sums and file lists created. Check output and press any
 
 # now start comparing the outputs for differences; the SHA sum should be 40 chars long and the path
 # should start at character 43.
-while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do  # IFS=, ?
+# Loop through the lines of the two files and compare their contents
+while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do
+  # Extract the SHA sums and paths from the lines
   sha1=${line1:0:40}
-  echo "sha1: $sha1"
   sha2=${line2:0:40}
-  echo "sha2: $sha2"
   path1="${line1:42}"
-  echo "path1: $path1"
   path2="${line2:42}"
-  echo "path2: $path2"
 
+  # Extract the common prefix from the paths
   common_prefix1=$(echo "${path1}" | awk -F/ 'BEGIN{OFS="/"} {for(i=4;i<=NF-1;i++) if ($i != "") {printf("%s/",$i)}}')
-  echo "common_prefix1: $common_prefix1"
   common_prefix2=$(echo "${path2}" | awk -F/ 'BEGIN{OFS="/"} {for(i=4;i<=NF-1;i++) if ($i != "") {printf("%s/",$i)}}')
-  echo "common_prefix2: $common_prefix2"
 
+  # Print out some debug information
+  echo "sha1: $sha1"
+  echo "sha2: $sha2"
+  echo "path1: $path1"
+  echo "path2: $path2"
+  echo "common_prefix1: $common_prefix1"
+  echo "common_prefix2: $common_prefix2"
   echo "common_prefix1&filename1: ${common_prefix1}${path1##*/}"
   echo "common_prefix2&filename2: ${common_prefix2}${path2##*/}"
-  
-  # compare relative paths and file names
+
+  # Compare the paths and filenames
   if [ "${common_prefix1}${path1##*/}" == "${common_prefix2}${path2##*/}" ]; then
-    # compare SHA sums
+    # Compare the SHA sums
     if [ "${sha1}" != "${sha2}" ]; then
-        # add copy command to copyfile
-        # echo "mkdir -p \"${path1%/*}\" && cp -p \"${path1}\" \"${common_prefix}\"" >> output/copy_all.sh
-        echo "cp -p $(escape_path "$path1") $(escape_path "$path2")" >> "$copy_script"
+      # Add a copy command to the copy script
+      echo "cp -p $(escape_path "$path1") $(escape_path "$path2")" >> "$copy_script"
     fi
   else
-    # add line to mismatchfile
+    # Add a line to the mismatch file
     echo "\"$path1\";\"$path2\"" >> "${tmpdir}output/${mismatchfile}"
   fi
-
-  # ask for input to continue
-  # read -n 1 -r -s -p $'Press any key to continue...\n'
 
 done 3<"$sha_file_list1" 4<"$sha_file_list2"
