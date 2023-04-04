@@ -9,4 +9,6 @@ The script assumes a comparison across something like: "/Volumes/Vol1/path/to/fi
 
 To guard against accidential overwrites and to verify files before they're copied, the copy command (`cp -p`) is output to a separate script, copy_all.sh.
 
+Differnces, if they exist, are logged in a file "mismatchs.csv" file. Often, the sheer existence of this file should account for restarting `rsync` again.
+
 This is work in progress and there is currently a fair bit of redundant debug output.
